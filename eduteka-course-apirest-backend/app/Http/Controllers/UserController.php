@@ -2,9 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Mockery\Expectation;
 
+
+http://localhost:5173/
 class UserController extends Controller
 {
     /**
@@ -12,16 +18,29 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::all();
+        $users = User::all();
+
+        return response()->json($users, 200);
     }
-    //testeeeeeee
+
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUserRequest $request)
     {
-        //
+        $data = $request->validated();
+
+        try {
+            $user = new User();
+            $user->fill($data);
+            $user->password = Hash::make(123);
+            $user->save();
+
+            return response()->json($user, 201);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'Error creating user'], 400);
+        }
     }
 
     /**
@@ -29,7 +48,13 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $user = User::findOrFail($id);
+            return response()->json($user, 200);
+        } catch (Exception $e) {
+            return response()->json(['message' => 'User not found'], 404);
+        }
+
     }
 
     /**
